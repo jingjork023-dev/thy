@@ -1,0 +1,3136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz for Exam 16.9.2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            line-height: 1.5;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .correct {
+            background-color: #d1fae5 !important;
+            border-color: #10b981 !important;
+            color: #065f46;
+        }
+        .incorrect {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b;
+        }
+        .selected {
+            background-color: #e0f2fe;
+            border-color: #38bdf8;
+        }
+        .question-nav-btn {
+            transition: all 0.2s ease-in-out;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .question-nav-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        .question-nav-btn.answered-correct {
+            background-color: #bfdbfe; /* Tailwind blue-200 */
+            border-color: #60a5fa; /* Tailwind blue-400 */
+            color: #1e40af; /* Tailwind blue-800 */
+        }
+        .question-nav-btn.answered-incorrect {
+            background-color: #fecaca; /* Tailwind red-200 */
+            border-color: #f87171; /* Tailwind red-400 */
+            color: #991b1b; /* Tailwind red-900 */
+        }
+        .question-nav-btn:hover:not(.active) {
+            background-color: #f3f4f6;
+        }
+        /* Styles for Edit Mode */
+        .edit-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+        .edit-label {
+            font-weight: 500;
+            color: #374151;
+            margin-top: 12px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen py-8">
+
+    <div id="quiz-container" class="quiz-container w-full">
+        
+        <div class="text-center mb-8 relative">
+            <h1 class="text-3xl font-bold text-gray-800">Quiz for Exam 16.09.2025</h1>
+            <p id="quiz-subtitle" class="text-gray-500 mt-2">Subject:  Medical Semiology 2</p>
+            <p class="text-gray-500">Lecturer:  (គ្រូតា & SOTHEARITH & NHEP NETH )
+            <div class="absolute top-0 left-0 flex gap-2">
+                <button id="practice-sheet-btn" class="bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 text-sm">Practice Sheet</button>
+                <button id="show-all-btn" class="bg-green-100 text-green-700 font-semibold py-2 px-4 rounded-lg hover:bg-green-200 text-sm">Show Answers</button>
+            </div>
+            <button id="edit-quiz-btn" class="absolute top-0 right-0 bg-gray-200 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 text-sm">Edit Quiz</button>
+        </div>
+
+        <div class="text-center mb-6">
+            <div class="inline-flex rounded-md shadow-sm flex-wrap justify-center" role="group">
+                <button id="part1-btn" type="button" class="py-2 px-6 text-sm font-medium text-white bg-indigo-600 rounded-l-lg border border-gray-200 hover:bg-indigo-700 focus:z-10 focus:ring-2 focus:ring-indigo-500">
+                    Part 1
+                </button>
+                <button id="part2-btn" type="button" class="py-2 px-6 text-sm font-medium text-gray-900 bg-white border border-gray-200 hover:bg-gray-100 focus:z-10 focus:ring-2 focus:ring-indigo-500 rounded-r-lg">
+                    Part 2
+                </button>
+            </div>
+        </div>
+
+
+        <div id="quiz-view">
+            <div class="flex justify-between items-center mb-4">
+                 <div id="main-score-text" class="text-lg font-bold text-indigo-600"></div>
+                 <button id="redo-part-btn" class="bg-orange-100 text-orange-700 font-semibold py-2 px-4 rounded-lg hover:bg-orange-200 text-sm">Redo Part</button>
+            </div>
+            <div id="question-navigation" class="flex flex-wrap justify-center gap-2 mb-6">
+                </div>
+
+            <div id="question-area" class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="question-number" class="text-xl font-semibold text-gray-700"></h2>
+                   
+                </div>
+                <div id="question-text" class="text-lg text-gray-800 leading-relaxed"></div>
+            </div>
+
+            <div id="answer-area" class="grid grid-cols-1 md-grid-cols-2 gap-4">
+                </div>
+
+            <div id="feedback-area" class="mt-6 text-center text-lg font-medium"></div>
+
+            <div class="mt-6 text-center">
+                <button id="redo-btn" class="hidden bg-yellow-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-yellow-600 transition-colors duration-300 shadow-lg">
+                    Redo Question
+                </button>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <button id="prev-btn" class="bg-gray-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-600 transition-colors duration-300 shadow-lg hidden">
+                    <span class="font-semibold">&larr; Previous</span>
+                </button>
+                <button id="next-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg hidden ml-auto">
+                    <span class="font-semibold">Next Question</span>
+                </button>
+            </div>
+
+            <div id="results-area" class="hidden text-center">
+                <div class="mb-4">
+                    <h2 class="text-4xl font-extrabold text-gray-800">Quiz Complete!</h2>
+                </div>
+                <p id="results-score" class="text-2xl text-gray-600 mb-6"></p>
+                <div id="summary" class="text-left mt-8 bg-gray-50 p-6 rounded-lg">
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-gray-700">Review Your Answers:</h3>
+                    </div>
+                </div>
+                <button id="restart-btn" class="mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg">
+                    <span class="font-semibold">Play Again</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="practice-sheet-view" class="hidden">
+            </div>
+
+        <div id="all-questions-view" class="hidden">
+            </div>
+
+        <div id="edit-view" class="hidden">
+            <h2 class="text-2xl font-bold text-center mb-6">Edit Quiz Questions</h2>
+            <div id="edit-question-navigation" class="flex flex-wrap justify-center gap-2 mb-6">
+                </div>
+            <div id="edit-questions-container"></div>
+            <div class="flex justify-between items-start mt-8">
+                <button id="add-question-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700">Add Question</button>
+                <div>
+                    <button id="cancel-edit-btn" class="bg-gray-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-600 mr-4">Cancel</button>
+                    <button id="apply-preview-btn" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Apply to Preview</button>
+                    <button id="generate-save-code-btn" class="bg-purple-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-700 ml-4">Generate Save Code</button>
+                </div>
+            </div>
+            <div id="export-area" class="hidden mt-6 p-4 border-2 border-dashed border-purple-400 rounded-lg bg-purple-50">
+                <h3 class="text-lg font-semibold text-purple-800">How to Save Your Changes Permanently</h3>
+                <ol class="list-decimal list-inside text-gray-700 space-y-2 mt-2">
+                    <li>All the code for your updated quiz is in the text box below.</li>
+                    <li>Click anywhere in the box to automatically copy all the code.</li>
+                    <li>Paste the copied code in a new message and send it to me.</li>
+                    <li>I will then update the file for you with your permanent changes.</li>
+                </ol>
+                <textarea id="export-output" readonly class="w-full h-64 p-2 border rounded-md bg-gray-100 font-mono text-sm focus:ring-2 focus:ring-indigo-500 mt-4 cursor-pointer"></textarea>
+                <p id="copy-feedback" class="text-purple-700 font-medium text-sm mt-2 h-4"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let quizDataPart1 = [
+    {
+        "number": 1,
+        "type": "mcq",
+        "question": {
+            "en": "Aldosterone is released by what stimuli? 1"
+        },
+        "options": {
+            "en": [
+                "Hypercalcemia",
+                "Hypocalcemia",
+                "Hyperkalemia",
+                "Hypokalemia",
+                "Hypoglycemia"
+            ]
+        },
+        "answer": {
+            "en": "Hyperkalemia"
+        }
+    },
+    {
+        "number": 2,
+        "type": "mcq",
+        "question": {
+            "en": "Aldosterone is released by what stimuli? 2"
+        },
+        "options": {
+            "en": [
+                "Angiotensin 2",
+                "Atrial natriuretic peptide",
+                "Epinephrine",
+                "Glucagon",
+                "Insulin"
+            ]
+        },
+        "answer": {
+            "en": "Angiotensin 2"
+        }
+    },
+    {
+        "number": 3,
+        "type": "mcq",
+        "question": {
+            "en": "Aldosterone responses to what of the following events? 3"
+        },
+        "options": {
+            "en": [
+                "Response to stress",
+                "Response to low blood pressure",
+                "Response to hypoglycemia",
+                "Response to hypoxia",
+                "Response to hypokalemia"
+            ]
+        },
+        "answer": {
+            "en": "Response to low blood pressure"
+        }
+    },
+    {
+        "number": 4,
+        "type": "mcq",
+        "question": {
+            "en": "what is the physiologic effect of aldosterone at the chief cells of kidney? 4"
+        },
+        "options": {
+            "en": [
+                "Excretion of $Na^{+}$",
+                "Excretion of $K^{+}$",
+                "Excretion of $Ca^{++}$",
+                "Excretion of $Mg^{++}$",
+                "Excretion of $PO_{4}^{-}$"
+            ]
+        },
+        "answer": {
+            "en": "Excretion of $K^{+}$"
+        }
+    },
+    {
+        "number": 5,
+        "type": "mcq",
+        "question": {
+            "en": "What is the physiologic effect of aldosterone at the chief cells of kidney? 5"
+        },
+        "options": {
+            "en": [
+                "Reabsorption of $Na^{+}$",
+                "Reabsorption of $K^{+}$",
+                "Reabsorption of $Ca^{++}$",
+                "Reabsorption of $Mg^{++}$",
+                "Reabsorption of $PO_{4}^{-}$"
+            ]
+        },
+        "answer": {
+            "en": "Reabsorption of $Na^{+}$"
+        }
+    },
+    {
+        "number": 6,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol is released by what of the following stimuli? 6"
+        },
+        "options": {
+            "en": [
+                "hypoglycemia",
+                "hypocalcemia",
+                "hypokalemia",
+                "hypotension",
+                "hypothermia"
+            ]
+        },
+        "answer": {
+            "en": "hypoglycemia"
+        }
+    },
+    {
+        "number": 7,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol is released by what of the following stimuli? 7"
+        },
+        "options": {
+            "en": [
+                "Hyperkalemia",
+                "Hypertension",
+                "Hypoglycemia",
+                "Alkalosis",
+                "Acidosis"
+            ]
+        },
+        "answer": {
+            "en": "Hypoglycemia"
+        }
+    },
+    {
+        "number": 8,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol is released by what of the following stimuli? 8"
+        },
+        "options": {
+            "en": [
+                "Fear",
+                "Feeding",
+                "Happy",
+                "Relaxing",
+                "Sleep"
+            ]
+        },
+        "answer": {
+            "en": "Fear"
+        }
+    },
+    {
+        "number": 9,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol is released by what of the following stimuli? 9"
+        },
+        "options": {
+            "en": [
+                "Blood pressure",
+                "Physical stress",
+                "Hyperkalemia",
+                "Acidosis",
+                "Hypoxemia"
+            ]
+        },
+        "answer": {
+            "en": "Physical stress"
+        }
+    },
+    {
+        "number": 10,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol involves in what metabolism? 10"
+        },
+        "options": {
+            "en": [
+                "Glycogenolysis",
+                "Gluconeogenesis",
+                "Glycolysis",
+                "Protein synthesis",
+                "Lipogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Gluconeogenesis"
+        }
+    },
+    {
+        "number": 11,
+        "type": "mcq",
+        "question": {
+            "en": "what hormone increases appetite? 11111111"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "Epinephrine",
+                "Cortisol",
+                "Growth hormone",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Cortisol"
+        }
+    },
+    {
+        "number": 12,
+        "type": "mcq",
+        "question": {
+            "en": "what hormone depresses immunity? 12121212"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "Epinephrine",
+                "Cortisol",
+                "Growth hormone",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Cortisol"
+        }
+    },
+    {
+        "number": 13,
+        "type": "mcq",
+        "question": {
+            "en": "what hormone used as anti-inflammatory? 13131313"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "Epinephrine",
+                "Cortisol",
+                "Growth hormone",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Cortisol"
+        }
+    },
+    {
+        "number": 14,
+        "type": "mcq",
+        "question": {
+            "en": "what hormone increase red blood cells during stress? 14141414"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "Epinephrine",
+                "Cortisol",
+                "Growth hormone",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Cortisol"
+        }
+    },
+    {
+        "number": 15,
+        "type": "mcq",
+        "question": {
+            "en": "what is the bad effect of cortisol in excess? 15151515"
+        },
+        "options": {
+            "en": [
+                "Hypoglycemia",
+                "Hypotension",
+                "Osteolysis",
+                "Rapid growth",
+                "Bleeding"
+            ]
+        },
+        "answer": {
+            "en": "Osteolysis"
+        }
+    },
+    {
+        "number": 16,
+        "type": "mcq",
+        "question": {
+            "en": "what is the bad effect of cortisol in in excess? 16161616"
+        },
+        "options": {
+            "en": [
+                "Hyperglycemia",
+                "Hypoglycemia",
+                "Hypotension",
+                "Rapid growth",
+                "Bleeding"
+            ]
+        },
+        "answer": {
+            "en": "Hyperglycemia"
+        }
+    },
+    {
+        "number": 17,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone acts on liver to produce glucose only through gluconeogenesis? 17"
+        },
+        "options": {
+            "en": [
+                "GH",
+                "Glucagon",
+                "Cortisol",
+                "Epinephrine",
+                "Dopamine"
+            ]
+        },
+        "answer": {
+            "en": "Cortisol"
+        }
+    },
+    {
+        "number": 18,
+        "type": "mcq",
+        "question": {
+            "en": "What is the physiologic effect of Aldosterone? 18"
+        },
+        "options": {
+            "en": [
+                "Reabsorption $K^{+}$",
+                "Reabsorption $Na^{+}$",
+                "Reabsorption $Ca^{2+}$",
+                "Reabsorption $Mg^{2+}$",
+                "Reabsorption $PO_{4}^{-}$"
+            ]
+        },
+        "answer": {
+            "en": "Reabsorption $Na^{+}$"
+        }
+    },
+    {
+        "number": 19,
+        "type": "mcq",
+        "question": {
+            "en": "What is the physiologic effect of Aldosterone? 19"
+        },
+        "options": {
+            "en": [
+                "Excretion $K^{+}$",
+                "Excretion $Na^{+}$",
+                "Excretion $Ca^{2+}$",
+                "Excretion $Mg^{2+}$",
+                "Excretion $PO_{4}^{-}$"
+            ]
+        },
+        "answer": {
+            "en": "Excretion $K^{+}$"
+        }
+    },
+    {
+        "number": 20,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone decreases blood glucose in feeding state? 20"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "$T_{3}$ & $T_{4}$",
+                "PTH",
+                "Glucagon",
+                "Epinephrine"
+            ]
+        },
+        "answer": {
+            "en": "Insulin"
+        }
+    },
+    {
+        "number": 21,
+        "type": "mcq",
+        "question": {
+            "en": "Glucagon involves in what metabolism? 21212121"
+        },
+        "options": {
+            "en": [
+                "Glycogenolysis",
+                "Glycogen synthesis",
+                "Glycolysis",
+                "Protein synthesis",
+                "Lipogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Glycogenolysis"
+        }
+    },
+    {
+        "number": 22,
+        "type": "mcq",
+        "question": {
+            "en": "Glucagon involves in what metabolism? 22222222"
+        },
+        "options": {
+            "en": [
+                "Gluconeogenesis",
+                "Glycogen synthesis",
+                "Glycolysis",
+                "Protein synthesis",
+                "Lipogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Gluconeogenesis"
+        }
+    },
+    {
+        "number": 23,
+        "type": "mcq",
+        "question": {
+            "en": "Glucagon involves in what metabolism? 23232323"
+        },
+        "options": {
+            "en": [
+                "Ketogenesis",
+                "Glycogen synthesis",
+                "Glycolysis",
+                "Protein synthesis",
+                "Lipogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Ketogenesis"
+        }
+    },
+    {
+        "number": 24,
+        "type": "mcq",
+        "question": {
+            "en": "Glucagon involves in what metabolism? 24"
+        },
+        "options": {
+            "en": [
+                "Lipolysis",
+                "Glycogen synthesis",
+                "Glycolysis",
+                "Protein synthesis",
+                "Lipogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Lipolysis"
+        }
+    },
+    {
+        "number": 25,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone produces ketone bodies? 25252525"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "Epinephrine",
+                "Glucagon",
+                "Growth hormone",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Glucagon"
+        }
+    },
+    {
+        "number": 26,
+        "type": "mcq",
+        "question": {
+            "en": "what hormone acts on $\\beta 2$ receptors on muscle cells during stress? 26"
+        },
+        "options": {
+            "en": [
+                "Insulin",
+                "Epinephrine",
+                "Cortisol",
+                "Growth hormone",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Epinephrine"
+        }
+    },
+    {
+        "number": 27,
+        "type": "mcq",
+        "question": {
+            "en": "what is the metabolism effect of growth hormone? 27272727"
+        },
+        "options": {
+            "en": [
+                "Protein synthesis",
+                "Lipogenesis",
+                "Glycogenesis",
+                "Breakdown of Protein",
+                "Ketogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Protein synthesis"
+        }
+    },
+    {
+        "number": 28,
+        "type": "mcq",
+        "question": {
+            "en": "what is the metabolism effect of growth hormone? 28282828"
+        },
+        "options": {
+            "en": [
+                "Lipogenesis",
+                "Lipolysis",
+                "Glycogenesis",
+                "Breakdown of Protein",
+                "Ketogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Lipolysis"
+        }
+    },
+    {
+        "number": 29,
+        "type": "mcq",
+        "question": {
+            "en": "Growth hormone is released by what of the following stimuli? 29"
+        },
+        "options": {
+            "en": [
+                "Hyperkalemia",
+                "Hypertension",
+                "Hypoglycemia",
+                "Alkalosis",
+                "Acidosis"
+            ]
+        },
+        "answer": {
+            "en": "Hypoglycemia"
+        }
+    },
+    {
+        "number": 30,
+        "type": "mcq",
+        "question": {
+            "en": "Growth hormone is released by what of the following stimuli? 30"
+        },
+        "options": {
+            "en": [
+                "Fear",
+                "Feeding",
+                "Happiness",
+                "Relaxing",
+                "Exercise"
+            ]
+        },
+        "answer": {
+            "en": "Exercise"
+        }
+    },
+    {
+        "number": 31,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone whose physiologic effect are gluconeogenesis and protein synthesis? 31313131"
+        },
+        "options": {
+            "en": [
+                "Cortisol",
+                "Epinephrine",
+                "Glucagon",
+                "Insulin",
+                "GH"
+            ]
+        },
+        "answer": {
+            "en": "GH"
+        }
+    },
+    {
+        "number": 32,
+        "type": "mcq",
+        "question": {
+            "en": "what hormones are considered as hyperglycemia hormones? 32"
+        },
+        "options": {
+            "en": [
+                "Insulin and glucagon",
+                "Insulin and growth hormone",
+                "Insulin and glucocorticoid",
+                "Glucagon and glucocorticoid",
+                "Aldosterone and glucocorticoid"
+            ]
+        },
+        "answer": {
+            "en": "Glucagon and glucocorticoid"
+        }
+    },
+    {
+        "number": 33,
+        "type": "mcq",
+        "question": {
+            "en": "what hormones are considered as hyperglycemia hormones? 33"
+        },
+        "options": {
+            "en": [
+                "Insulin and glucagon",
+                "Thyroxin and growth hormone",
+                "Insulin and glucocorticoid",
+                "Glucagon and growth hormone",
+                "Aldosterone and glucocorticoid"
+            ]
+        },
+        "answer": {
+            "en": "Glucagon and growth hormone"
+        }
+    },
+    {
+        "number": 34,
+        "type": "mcq",
+        "question": {
+            "en": "what hormones are considered as hyperglycemia hormones? 34"
+        },
+        "options": {
+            "en": [
+                "Insulin and glucagon",
+                "Insulin and growth hormone",
+                "Insulin and glucocorticoid",
+                "Glucocorticoid and growth hormone",
+                "Aldosterone and glucocorticoid"
+            ]
+        },
+        "answer": {
+            "en": "Glucocorticoid and growth hormone"
+        }
+    },
+    {
+        "number": 35,
+        "type": "mcq",
+        "question": {
+            "en": "what hormones are considered as hyperglycemia hormones? 35"
+        },
+        "options": {
+            "en": [
+                "Aldosterone and glucagon",
+                "Aldosterone and glucocorticoid",
+                "Epinephrine and Glucocorticoid",
+                "Insulin and growth hormone",
+                "Insulin and Epinephrine"
+            ]
+        },
+        "answer": {
+            "en": "Epinephrine and Glucocorticoid"
+        }
+    },
+    {
+        "number": 36,
+        "type": "mcq",
+        "question": {
+            "en": "what hormones are considered as hyperglycemia hormones? 36"
+        },
+        "options": {
+            "en": [
+                "Aldosterone and glucagon",
+                "Aldosterone and glucocorticoid",
+                "Epinephrine and Growth hormone",
+                "Insulin and growth hormone",
+                "Insulin and Epinephrine"
+            ]
+        },
+        "answer": {
+            "en": "Epinephrine and Growth hormone"
+        }
+    },
+    {
+        "number": 37,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone acting on liver to produce glucose through gluconeogenesis? 37"
+        },
+        "options": {
+            "en": [
+                "Epinephrine $+T_{3}$ & $T_{4}$ + Glucagon + GH",
+                "Glucagon + GH + Cortisol + Insulin",
+                "Epinephrine + Glucagon + Cortisol + GH",
+                "Epinephrine + Glucagon + Cortisol + PTH"
+            ]
+        },
+        "answer": {
+            "en": "Epinephrine + Glucagon + Cortisol + GH"
+        }
+    },
+    {
+        "number": 38,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone produce T3/T4? 38"
+        },
+        "options": {
+            "en": [
+                "TSH",
+                "ACTH",
+                "FSH",
+                "LH",
+                "GH"
+            ]
+        },
+        "answer": {
+            "en": "TSH"
+        }
+    },
+    {
+        "number": 39,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone acts on bone resorption? 393939"
+        },
+        "options": {
+            "en": [
+                "GH",
+                "PTH",
+                "Calcitonin",
+                "Epinephrine",
+                "Estrogen"
+            ]
+        },
+        "answer": {
+            "en": "PTH"
+        }
+    },
+    {
+        "number": 40,
+        "type": "mcq",
+        "question": {
+            "en": "What Organ Separate $Ca^{2+}$ from $PO_{4}^{3-}$ under control of PTH? 404040"
+        },
+        "options": {
+            "en": [
+                "Heart",
+                "Kidney",
+                "Intestine",
+                "Liver",
+                "Lung"
+            ]
+        },
+        "answer": {
+            "en": "Kidney"
+        }
+    },
+    {
+        "number": 41,
+        "type": "mcq",
+        "question": {
+            "en": "Calcitonin is released by what stimuli? 41"
+        },
+        "options": {
+            "en": [
+                "High blood pressure",
+                "Stress",
+                "Hypercalcemia",
+                "Acidosis",
+                "Hypoxemia"
+            ]
+        },
+        "answer": {
+            "en": "Hypercalcemia"
+        }
+    },
+    {
+        "number": 42,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone release gonadotrophin? 42"
+        },
+        "options": {
+            "en": [
+                "TRH",
+                "CRH",
+                "GnRH",
+                "GHRH",
+                "Somatostatin"
+            ]
+        },
+        "answer": {
+            "en": "GnRH"
+        }
+    },
+    {
+        "number": 43,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone produce cortisol? 43"
+        },
+        "options": {
+            "en": [
+                "TSH",
+                "ACTH",
+                "FSH",
+                "LH",
+                "GH"
+            ]
+        },
+        "answer": {
+            "en": "ACTH"
+        }
+    },
+    {
+        "number": 44,
+        "type": "mcq",
+        "question": {
+            "en": "What steroid hormone increases HDL cholesterol? 444444"
+        },
+        "options": {
+            "en": [
+                "Progesterone",
+                "Testosterone",
+                "Estrogen",
+                "Cortisol",
+                "Aldosterone"
+            ]
+        },
+        "answer": {
+            "en": "Estrogen"
+        }
+    },
+    {
+        "number": 45,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone increase temperature in the middle cycle of menstruation? 454545"
+        },
+        "options": {
+            "en": [
+                "Testosterone",
+                "Androstenedione",
+                "Estrone",
+                "Estradiol",
+                "Progesterone"
+            ]
+        },
+        "answer": {
+            "en": "Progesterone"
+        }
+    },
+    {
+        "number": 46,
+        "type": "mcq",
+        "question": {
+            "en": "What hormones play a role in menstruation? 46"
+        },
+        "options": {
+            "en": [
+                "Cortisol + T3",
+                "Calcitonin + PTH",
+                "FSH + LH",
+                "GH + TSH",
+                "Estrogen + progesterone"
+            ]
+        },
+        "answer": {
+            "en": "Estrogen + progesterone"
+        }
+    },
+    {
+        "number": 47,
+        "type": "mcq",
+        "question": {
+            "en": "What enzyme play a role to make testosterone active on its target? 47"
+        },
+        "options": {
+            "en": [
+                "Peroxidase",
+                "Hydroxylase",
+                "Reductase",
+                "Carbonic anhydrase",
+                "Carboxylase"
+            ]
+        },
+        "answer": {
+            "en": "Reductase"
+        }
+    },
+    {
+        "number": 48,
+        "type": "mcq",
+        "question": {
+            "en": "What plasma stimuli releases PTH? 48"
+        },
+        "options": {
+            "en": [
+                "Hyperkalemia",
+                "Hypocalcemia",
+                "Hypernatremia",
+                "Hypophosphatemia",
+                "Hypervolemia"
+            ]
+        },
+        "answer": {
+            "en": "Hypocalcemia"
+        }
+    },
+    {
+        "number": 49,
+        "type": "mcq",
+        "question": {
+            "en": "What hormone act on Kidney to produce $1-25(OH)_{2}$ Vitamin D3? 494949"
+        },
+        "options": {
+            "en": [
+                "Calcitonin",
+                "PTH",
+                "GH",
+                "Cortisol",
+                "T3/T4"
+            ]
+        },
+        "answer": {
+            "en": "PTH"
+        }
+    },
+    {
+        "number": 50,
+        "type": "mcq",
+        "question": {
+            "en": "What organ separates $Ca^{++}$ from $PO_{4}^{3-}$ under control of PTH? 505050"
+        },
+        "options": {
+            "en": [
+                "Intestine",
+                "Kidney",
+                "Bone",
+                "Heart",
+                "Lung"
+            ]
+        },
+        "answer": {
+            "en": "Kidney"
+        }
+    },
+    {
+        "number": 51,
+        "type": "mcq",
+        "question": {
+            "en": "What is the effect of PTH to increase serum calcium? 515151"
+        },
+        "options": {
+            "en": [
+                "Bone resorption and calcium reabsorption",
+                "Bone mineralization and calcium absorption",
+                "Bone mineralization and calcium reabsorption",
+                "Bone resorption and calcium excretion",
+                "Calcium absorption and Phosphate absorption"
+            ]
+        },
+        "answer": {
+            "en": "Bone resorption and calcium reabsorption"
+        }
+    },
+    {
+        "number": 52,
+        "type": "mcq",
+        "question": {
+            "en": "What enzyme converts androgen to estrogen? 52"
+        },
+        "options": {
+            "en": [
+                "Reductase",
+                "Hydroxylase",
+                "Aromatase",
+                "Peroxidase",
+                "Deiodinase"
+            ]
+        },
+        "answer": {
+            "en": "Aromatase"
+        }
+    },
+    {
+        "number": 53,
+        "type": "mcq",
+        "question": {
+            "en": "What is the effect of calcitonin to decrease serum calcium? 535353"
+        },
+        "options": {
+            "en": [
+                "Bone resorption and calcium reabsorption",
+                "Bone mineralization and calcium excretion",
+                "Bone mineralization and calcium reabsorption",
+                "Bone resorption and calcium excretion",
+                "Calcium absorption and Phosphate absorption"
+            ]
+        },
+        "answer": {
+            "en": "Bone mineralization and calcium excretion"
+        }
+    },
+    {
+        "number": 54,
+        "type": "mcq",
+        "question": {
+            "en": "What glucose transporter, pancreatic beta cell uses to uptake glucose from blood? 54"
+        },
+        "options": {
+            "en": [
+                "GLUT 1",
+                "GLUT 2",
+                "GLUT 3",
+                "GLUT 4",
+                "GLUT 5"
+            ]
+        },
+        "answer": {
+            "en": "GLUT 2"
+        }
+    },
+    {
+        "number": 55,
+        "type": "mcq",
+        "question": {
+            "en": "What glucose transporter enterocyte uses to facilitate diffusion of glucose into the blood? 55"
+        },
+        "options": {
+            "en": [
+                "GLUT 1",
+                "GLUT 2",
+                "GLUT 3",
+                "GLUT 4",
+                "GLUT 5"
+            ]
+        },
+        "answer": {
+            "en": "GLUT 2"
+        }
+    },
+    {
+        "number": 56,
+        "type": "mcq",
+        "question": {
+            "en": "Absorption of Fructose from intestinal lumen uses what type of transporter? 56"
+        },
+        "options": {
+            "en": [
+                "GLUT 1",
+                "GLUT 2",
+                "GLUT 3",
+                "GLUT 4",
+                "GLUT 5"
+            ]
+        },
+        "answer": {
+            "en": "GLUT 5"
+        }
+    },
+    {
+        "number": 57,
+        "type": "mcq",
+        "question": {
+            "en": "Uptake of glucose from blood into skeletal muscle under control of insulin uses what type of transporter? 57"
+        },
+        "options": {
+            "en": [
+                "GLUT 1",
+                "GLUT 2",
+                "GLUT 3",
+                "GLUT 4",
+                "GLUT 5"
+            ]
+        },
+        "answer": {
+            "en": "GLUT 4"
+        }
+    },
+    {
+        "number": 58,
+        "type": "mcq",
+        "question": {
+            "en": "Secretion of glucose from the Liver after Gluconeogenesis uses what type of transporter? 58"
+        },
+        "options": {
+            "en": [
+                "GLUT 1",
+                "GLUT 2",
+                "GLUT 3",
+                "GLUT 4",
+                "GLUT 5"
+            ]
+        },
+        "answer": {
+            "en": "GLUT 2"
+        }
+    },
+    {
+        "number": 59,
+        "type": "mcq",
+        "question": {
+            "en": "Uptake of glucose from intestinal lumen into enterocyte use what type of transporter? 59"
+        },
+        "options": {
+            "en": [
+                "SGLT 1",
+                "SGLT 2",
+                "GLUT 1",
+                "GLUT 2",
+                "GLUT 4"
+            ]
+        },
+        "answer": {
+            "en": "SGLT 1"
+        }
+    },
+    {
+        "number": 60,
+        "type": "mcq",
+        "question": {
+            "en": "What gastric cells are involved in acid secretion? 60"
+        },
+        "options": {
+            "en": [
+                "chief cell",
+                "entero chromaffin cell",
+                "G cell",
+                "parietal cell"
+            ]
+        },
+        "answer": {
+            "en": "parietal cell"
+        }
+    },
+    {
+        "number": 61,
+        "type": "mcq",
+        "question": {
+            "en": "What gastric cell secretes histamine? 61"
+        },
+        "options": {
+            "en": [
+                "chief cell",
+                "entero chromaffin cell",
+                "G cell",
+                "parietal cell"
+            ]
+        },
+        "answer": {
+            "en": "entero chromaffin cell"
+        }
+    },
+    {
+        "number": 62,
+        "type": "mcq",
+        "question": {
+            "en": "What gastric cell secretes pepsinogen? 62"
+        },
+        "options": {
+            "en": [
+                "chief cell",
+                "entero chromaffin cell",
+                "G cell",
+                "parietal cell"
+            ]
+        },
+        "answer": {
+            "en": "chief cell"
+        }
+    },
+    {
+        "number": 63,
+        "type": "mcq",
+        "question": {
+            "en": "What gastric cell secretes acid? 63"
+        },
+        "options": {
+            "en": [
+                "chief cell",
+                "entero chromaffin cell",
+                "G cell",
+                "parietal cell"
+            ]
+        },
+        "answer": {
+            "en": "parietal cell"
+        }
+    },
+    {
+        "number": 64,
+        "type": "mcq",
+        "question": {
+            "en": "What gastric cell plays a role as paracrine? 64"
+        },
+        "options": {
+            "en": [
+                "chief cell",
+                "entero chromaffin cell",
+                "G cell",
+                "parietal cell"
+            ]
+        },
+        "answer": {
+            "en": "entero chromaffin cell"
+        }
+    },
+    {
+        "number": 65,
+        "type": "mcq",
+        "question": {
+            "en": "What gastric cell plays a role as endocrine? 65"
+        },
+        "options": {
+            "en": [
+                "chief cell",
+                "entero chromaffin cell",
+                "G cell",
+                "parietal cell"
+            ]
+        },
+        "answer": {
+            "en": "G cell"
+        }
+    },
+    {
+        "number": 66,
+        "type": "mcq",
+        "question": {
+            "en": "What molecules are involved in acid secretion? 66"
+        },
+        "options": {
+            "en": [
+                "acetylcholine",
+                "somatostatin",
+                "gastrin",
+                "histamine"
+            ]
+        },
+        "answer": {
+            "en": "acetylcholine"
+        }
+    },
+    {
+        "number": 67,
+        "type": "mcq",
+        "question": {
+            "en": "What molecule plays a role as paracrine, inhibits acid secretion? 67"
+        },
+        "options": {
+            "en": [
+                "acetylcholine",
+                "somatostatin",
+                "gastrin",
+                "histamine"
+            ]
+        },
+        "answer": {
+            "en": "somatostatin"
+        }
+    }
+];
+        let quizDataPart2 = [
+    {
+        "number": 1,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following receptors is a ligand-gated ion channel?"
+        },
+        "options": {
+            "en": [
+                "Muscarinic M2 receptor",
+                "Nicotinic acetylcholine receptor",
+                "Insulin receptor",
+                "Glucocorticoid receptor"
+            ]
+        },
+        "answer": {
+            "en": "Nicotinic acetylcholine receptor"
+        }
+    },
+    {
+        "number": 2,
+        "type": "mcq",
+        "question": {
+            "en": "The $\\beta$-adrenergic receptor is an example of which type of receptor?"
+        },
+        "options": {
+            "en": [
+                "Enzyme-linked receptor",
+                "Ligand-gated ion channel",
+                "G-protein-coupled receptor (GPCR)",
+                "Intracellular receptor"
+            ]
+        },
+        "answer": {
+            "en": "G-protein-coupled receptor (GPCR)"
+        }
+    },
+    {
+        "number": 3,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following receptors acts intracellularly to influence gene transcription?"
+        },
+        "options": {
+            "en": [
+                "$\\alpha1$-adrenergic receptor",
+                "Insulin receptor",
+                "Estrogen receptor",
+                "NMDA receptor"
+            ]
+        },
+        "answer": {
+            "en": "Estrogen receptor"
+        }
+    },
+    {
+        "number": 4,
+        "type": "mcq",
+        "question": {
+            "en": "Which receptor is enzyme-linked and has intrinsic tyrosine kinase activity?"
+        },
+        "options": {
+            "en": [
+                "GABA-A receptor",
+                "Insulin receptor",
+                "Muscarinic M1 receptor",
+                "Androgen receptor"
+            ]
+        },
+        "answer": {
+            "en": "Insulin receptor"
+        }
+    },
+    {
+        "number": 5,
+        "type": "mcq",
+        "question": {
+            "en": "Activation of $\\alpha1$-adrenergic receptors leads to:"
+        },
+        "options": {
+            "en": [
+                "Activation of adenylate cyclase and $\\uparrow$ cAMP",
+                "Activation of phospholipase C and $\\uparrow$ IP₃/DAG",
+                "Opening of chloride channels",
+                "Direct gene transcription"
+            ]
+        },
+        "answer": {
+            "en": "Activation of phospholipase C and $\\uparrow$ IP₃/DAG"
+        }
+    },
+    {
+        "number": 6,
+        "type": "mcq",
+        "question": {
+            "en": "The primary second messenger for $\\beta2$-adrenergic receptor activation is:"
+        },
+        "options": {
+            "en": [
+                "IP₃",
+                "DAG",
+                "cAMP",
+                "$Ca^{2+}$"
+            ]
+        },
+        "answer": {
+            "en": "cAMP"
+        }
+    },
+    {
+        "number": 7,
+        "type": "mcq",
+        "question": {
+            "en": "What is the mechanism by which glucose stimulates insulin secretion from beta cells?"
+        },
+        "options": {
+            "en": [
+                "Direct diffusion into beta cells",
+                "Binding to surface receptors",
+                "ATP-sensitive K⁺ channel closure and membrane depolarization",
+                "Activation of cAMP pathway"
+            ]
+        },
+        "answer": {
+            "en": "ATP-sensitive K⁺ channel closure and membrane depolarization"
+        }
+    },
+    {
+        "number": 8,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following inhibits insulin secretion?"
+        },
+        "options": {
+            "en": [
+                "Amino acids (e.g., arginine, leucine)",
+                "Somatostatin",
+                "Parasympathetic stimulation",
+                "Incretins (e.g., GLP-1)"
+            ]
+        },
+        "answer": {
+            "en": "Somatostatin"
+        }
+    },
+    {
+        "number": 9,
+        "type": "mcq",
+        "question": {
+            "en": "Which transporter is responsible for insulin-dependent glucose uptake in muscle and adipose tissue?"
+        },
+        "options": {
+            "en": [
+                "GLUT-1",
+                "GLUT-2",
+                "GLUT-4",
+                "SGLT-1"
+            ]
+        },
+        "answer": {
+            "en": "GLUT-4"
+        }
+    },
+    {
+        "number": 10,
+        "type": "mcq",
+        "question": {
+            "en": "What is the effect of insulin on the liver?"
+        },
+        "options": {
+            "en": [
+                "Promotes gluconeogenesis",
+                "Inhibits glycogenolysis",
+                "Increases ketone body production",
+                "Stimulates glucose release into blood"
+            ]
+        },
+        "answer": {
+            "en": "Inhibits glycogenolysis"
+        }
+    },
+    {
+        "number": 11,
+        "type": "mcq",
+        "question": {
+            "en": "In skeletal muscle, insulin promotes:"
+        },
+        "options": {
+            "en": [
+                "Breakdown of proteins",
+                "Amino acid uptake and protein synthesis",
+                "Fatty acid oxidation",
+                "Ketone body utilization"
+            ]
+        },
+        "answer": {
+            "en": "Amino acid uptake and protein synthesis"
+        }
+    },
+    {
+        "number": 12,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following best describes the mechanism by which insulin lowers blood glucose levels?"
+        },
+        "options": {
+            "en": [
+                "Inhibition of glucose uptake in muscle",
+                "Activation of glucagon receptors",
+                "Promotion of glycogen breakdown in the liver",
+                "Increased glucose uptake and storage in liver and muscle"
+            ]
+        },
+        "answer": {
+            "en": "Increased glucose uptake and storage in liver and muscle"
+        }
+    },
+    {
+        "number": 13,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following best describes the primary action of glucagon in the liver?"
+        },
+        "options": {
+            "en": [
+                "Stimulates glycogen synthesis",
+                "Stimulates glycolysis",
+                "Stimulates gluconeogenesis and glycogenolysis",
+                "Inhibits ketogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Stimulates gluconeogenesis and glycogenolysis"
+        }
+    },
+    {
+        "number": 14,
+        "type": "mcq",
+        "question": {
+            "en": "Glucagon exerts its effects primarily through which second messenger system?"
+        },
+        "options": {
+            "en": [
+                "IP3/DAG",
+                "cAMP",
+                "cGMP",
+                "Tyrosine kinase"
+            ]
+        },
+        "answer": {
+            "en": "cAMP"
+        }
+    },
+    {
+        "number": 15,
+        "type": "mcq",
+        "question": {
+            "en": "Which metabolic state stimulates glucagon secretion the most?"
+        },
+        "options": {
+            "en": [
+                "Hyperglycemia",
+                "Postprandial state",
+                "Hypoglycemia",
+                "Insulin overdose"
+            ]
+        },
+        "answer": {
+            "en": "Hypoglycemia"
+        }
+    },
+    {
+        "number": 16,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is a major metabolic effect of growth hormone?"
+        },
+        "options": {
+            "en": [
+                "Increased glucose uptake by muscle",
+                "Increased lipogenesis",
+                "Increased protein synthesis",
+                "Decreased gluconeogenesis"
+            ]
+        },
+        "answer": {
+            "en": "Increased protein synthesis"
+        }
+    },
+    {
+        "number": 17,
+        "type": "mcq",
+        "question": {
+            "en": "Growth hormone promotes longitudinal bone growth indirectly by stimulating the production of:"
+        },
+        "options": {
+            "en": [
+                "Thyroxine",
+                "Insulin-like growth factor-1 (IGF-1)",
+                "Cortisol",
+                "Prolactin"
+            ]
+        },
+        "answer": {
+            "en": "Insulin-like growth factor-1 (IGF-1)"
+        }
+    },
+    {
+        "number": 18,
+        "type": "mcq",
+        "question": {
+            "en": "Growth hormone has which of the following effects on carbohydrate metabolism?"
+        },
+        "options": {
+            "en": [
+                "Decreases blood glucose by enhancing uptake",
+                "Increases insulin sensitivity",
+                "Causes insulin resistance and hyperglycemia",
+                "Has no effect on glucose metabolism"
+            ]
+        },
+        "answer": {
+            "en": "Causes insulin resistance and hyperglycemia"
+        }
+    },
+    {
+        "number": 19,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following best describes GH's effect on adipose tissue?"
+        },
+        "options": {
+            "en": [
+                "Promotes triglyceride storage",
+                "Stimulates lipolysis",
+                "Inhibits hormone-sensitive lipase",
+                "Enhances fat uptake"
+            ]
+        },
+        "answer": {
+            "en": "Stimulates lipolysis"
+        }
+    },
+    {
+        "number": 20,
+        "type": "mcq",
+        "question": {
+            "en": "Which hormone primarily inhibits growth hormone release?"
+        },
+        "options": {
+            "en": [
+                "Dopamine",
+                "Insulin",
+                "Somatostatin",
+                "Ghrelin"
+            ]
+        },
+        "answer": {
+            "en": "Somatostatin"
+        }
+    },
+    {
+        "number": 21,
+        "type": "mcq",
+        "question": {
+            "en": "When is growth hormone secretion at its highest level physiologically?"
+        },
+        "options": {
+            "en": [
+                "During REM sleep",
+                "During intense exercise",
+                "During the postprandial state",
+                "In early morning fasting"
+            ]
+        },
+        "answer": {
+            "en": "During intense exercise"
+        }
+    },
+    {
+        "number": 22,
+        "type": "mcq",
+        "question": {
+            "en": "Growth hormone secretion is stimulated by:"
+        },
+        "options": {
+            "en": [
+                "High blood glucose",
+                "High IGF-1 levels",
+                "Deep sleep and hypoglycemia",
+                "Somatostatin"
+            ]
+        },
+        "answer": {
+            "en": "Deep sleep and hypoglycemia"
+        }
+    },
+    {
+        "number": 23,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following directly stimulates the release of ACTH from the anterior pituitary?"
+        },
+        "options": {
+            "en": [
+                "Cortisol",
+                "CRH (Corticotropin-releasing hormone)",
+                "Aldosterone",
+                "Renin"
+            ]
+        },
+        "answer": {
+            "en": "CRH (Corticotropin-releasing hormone)"
+        }
+    },
+    {
+        "number": 24,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is a metabolic effect of cortisol?"
+        },
+        "options": {
+            "en": [
+                "Stimulates glucose uptake in peripheral tissues",
+                "Inhibits gluconeogenesis",
+                "Promotes glycogenesis in the liver",
+                "Increases gluconeogenesis and protein catabolism"
+            ]
+        },
+        "answer": {
+            "en": "Increases gluconeogenesis and protein catabolism"
+        }
+    },
+    {
+        "number": 25,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol is classified as what type of hormone?"
+        },
+        "options": {
+            "en": [
+                "Mineralocorticoid",
+                "Glucocorticoid",
+                "Catecholamine",
+                "Androgen"
+            ]
+        },
+        "answer": {
+            "en": "Glucocorticoid"
+        }
+    },
+    {
+        "number": 26,
+        "type": "mcq",
+        "question": {
+            "en": "ACTH acts on the adrenal cortex to stimulate production of:"
+        },
+        "options": {
+            "en": [
+                "Epinephrine",
+                "Norepinephrine",
+                "Cortisol",
+                "Insulin"
+            ]
+        },
+        "answer": {
+            "en": "Cortisol"
+        }
+    },
+    {
+        "number": 27,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following describes the immunologic effect of cortisol?"
+        },
+        "options": {
+            "en": [
+                "Enhances antibody production",
+                "Stimulates T-cell proliferation",
+                "Suppresses inflammation and immune response",
+                "Increases macrophage activation"
+            ]
+        },
+        "answer": {
+            "en": "Suppresses inflammation and immune response"
+        }
+    },
+    {
+        "number": 28,
+        "type": "mcq",
+        "question": {
+            "en": "Cortisol has which of the following effects on blood pressure?"
+        },
+        "options": {
+            "en": [
+                "Decreases sensitivity to catecholamines",
+                "Inhibits renin release",
+                "Promotes vasodilation",
+                "Increases vascular responsiveness to catecholamines"
+            ]
+        },
+        "answer": {
+            "en": "Increases vascular responsiveness to catecholamines"
+        }
+    },
+    {
+        "number": 29,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is a primary role of cortisol during stress?"
+        },
+        "options": {
+            "en": [
+                "Promotes glycogen storage in liver",
+                "Enhances insulin sensitivity",
+                "Increases glucose availability by stimulating gluconeogenesis",
+                "Inhibits protein breakdown"
+            ]
+        },
+        "answer": {
+            "en": "Increases glucose availability by stimulating gluconeogenesis"
+        }
+    },
+    {
+        "number": 30,
+        "type": "mcq",
+        "question": {
+            "en": "Catecholamines like epinephrine and norepinephrine are secreted from which part of the adrenal gland during acute stress?"
+        },
+        "options": {
+            "en": [
+                "Adrenal cortex – zona fasciculata",
+                "Adrenal cortex – zona glomerulosa",
+                "Adrenal medulla",
+                "Hypothalamus"
+            ]
+        },
+        "answer": {
+            "en": "Adrenal medulla"
+        }
+    },
+    {
+        "number": 31,
+        "type": "mcq",
+        "question": {
+            "en": "The “fight or flight” response is primarily mediated by:"
+        },
+        "options": {
+            "en": [
+                "Cortisol",
+                "Aldosterone",
+                "Epinephrine and norepinephrine",
+                "Insulin and glucagon"
+            ]
+        },
+        "answer": {
+            "en": "Epinephrine and norepinephrine"
+        }
+    },
+    {
+        "number": 32,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is the most biologically active thyroid hormone?"
+        },
+        "options": {
+            "en": [
+                "T4 (Thyroxine)",
+                "T3 (Triiodothyronine)",
+                "Reverse T3 (rT3)",
+                "Thyroglobulin"
+            ]
+        },
+        "answer": {
+            "en": "T3 (Triiodothyronine)"
+        }
+    },
+    {
+        "number": 33,
+        "type": "mcq",
+        "question": {
+            "en": "Thyroid hormones primarily increase metabolic rate by:"
+        },
+        "options": {
+            "en": [
+                "Decreasing mitochondrial activity",
+                "Increasing Na⁺-K⁺ ATPase pump activity",
+                "Inhibiting protein synthesis",
+                "Reducing oxygen consumption"
+            ]
+        },
+        "answer": {
+            "en": "Increasing Na⁺-K⁺ ATPase pump activity"
+        }
+    },
+    {
+        "number": 34,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is a cardiovascular effect of T3 and T4?"
+        },
+        "options": {
+            "en": [
+                "Decreased heart rate",
+                "Reduced cardiac output",
+                "Increased cardiac contractility",
+                "Vasoconstriction"
+            ]
+        },
+        "answer": {
+            "en": "Increased cardiac contractility"
+        }
+    },
+    {
+        "number": 35,
+        "type": "mcq",
+        "question": {
+            "en": "Thyroid hormones enhance the effects of catecholamines by:"
+        },
+        "options": {
+            "en": [
+                "Downregulating beta-adrenergic receptors",
+                "Increasing beta-adrenergic receptor expression",
+                "Inhibiting cAMP production",
+                "Blocking epinephrine release"
+            ]
+        },
+        "answer": {
+            "en": "Increasing beta-adrenergic receptor expression"
+        }
+    },
+    {
+        "number": 36,
+        "type": "mcq",
+        "question": {
+            "en": "The primary form of thyroid hormone secreted by the thyroid gland is:"
+        },
+        "options": {
+            "en": [
+                "T3",
+                "T4",
+                "Reverse T3",
+                "Calcitonin"
+            ]
+        },
+        "answer": {
+            "en": "T4"
+        }
+    },
+    {
+        "number": 37,
+        "type": "mcq",
+        "question": {
+            "en": "Thyroid hormones increase heat production by:"
+        },
+        "options": {
+            "en": [
+                "Decreasing metabolic rate",
+                "Activating uncoupling proteins (UCPs)",
+                "Inhibiting sympathetic activity",
+                "Reducing oxygen consumption"
+            ]
+        },
+        "answer": {
+            "en": "Activating uncoupling proteins (UCPs)"
+        }
+    },
+    {
+        "number": 38,
+        "type": "mcq",
+        "question": {
+            "en": "What is the primary stimulus for parathyroid hormone (PTH) secretion?"
+        },
+        "options": {
+            "en": [
+                "High serum calcium levels",
+                "Low serum calcium levels",
+                "High serum phosphate levels",
+                "Low serum magnesium levels"
+            ]
+        },
+        "answer": {
+            "en": "Low serum calcium levels"
+        }
+    },
+    {
+        "number": 39,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is a direct effect of PTH on the kidneys?"
+        },
+        "options": {
+            "en": [
+                "Decreases calcium reabsorption",
+                "Increases phosphate reabsorption",
+                "Stimulates 1,25-dihydroxycholecalciferol (calcitriol) production",
+                "Reduces urinary cAMP excretion"
+            ]
+        },
+        "answer": {
+            "en": "Stimulates 1,25-dihydroxycholecalciferol (calcitriol) production"
+        }
+    },
+    {
+        "number": 40,
+        "type": "mcq",
+        "question": {
+            "en": "PTH increases serum calcium levels by acting on which target organ(s)?"
+        },
+        "options": {
+            "en": [
+                "Only the bones",
+                "Only the kidneys",
+                "Bones and kidneys",
+                "Bones, kidneys, and intestines"
+            ]
+        },
+        "answer": {
+            "en": "Bones, kidneys, and intestines"
+        }
+    },
+    {
+        "number": 41,
+        "type": "mcq",
+        "question": {
+            "en": "How does PTH affect phosphate levels in the blood?"
+        },
+        "options": {
+            "en": [
+                "Increases phosphate by reducing renal excretion",
+                "Decreases phosphate by increasing renal excretion",
+                "Has no effect on phosphate levels",
+                "Increases phosphate absorption in the gut"
+            ]
+        },
+        "answer": {
+            "en": "Decreases phosphate by increasing renal excretion"
+        }
+    },
+    {
+        "number": 42,
+        "type": "mcq",
+        "question": {
+            "en": "How does PTH increase active Vitamin D (calcitriol) levels?"
+        },
+        "options": {
+            "en": [
+                "By directly synthesizing Vitamin D in the skin",
+                "By stimulating $1\\alpha$-hydroxylase in the kidneys",
+                "By inhibiting 24-hydroxylase in the liver",
+                "By increasing dietary Vitamin D absorption"
+            ]
+        },
+        "answer": {
+            "en": "By stimulating $1\\alpha$-hydroxylase in the kidneys"
+        }
+    },
+    {
+        "number": 43,
+        "type": "mcq",
+        "question": {
+            "en": "Which of the following is the primary androgen secreted by testes?"
+        },
+        "options": {
+            "en": [
+                "Dihydrotestosterone (DHT)",
+                "Androstenedione",
+                "Testosterone",
+                "Dehydroepiandrosterone (DHEA)"
+            ]
+        },
+        "answer": {
+            "en": "Testosterone"
+        }
+    },
+    {
+        "number": 44,
+        "type": "mcq",
+        "question": {
+            "en": "Which enzyme converts testosterone to DHT in target tissues?"
+        },
+        "options": {
+            "en": [
+                "Aromatase",
+                "$5\\alpha$-reductase",
+                "$17\\beta$-HSD",
+                "CYP19A1"
+            ]
+        },
+        "answer": {
+            "en": "$5\\alpha$-reductase"
+        }
+    },
+    {
+        "number": 45,
+        "type": "mcq",
+        "question": {
+            "en": "Testosterone's role in spermatogenesis is:"
+        },
+        "options": {
+            "en": [
+                "Directly stimulating germ cells",
+                "Maintaining high intratesticular [Testoterone] via Sertoli cells",
+                "Inhibiting FSH secretion",
+                "Blocking ABP production"
+            ]
+        },
+        "answer": {
+            "en": "Maintaining high intratesticular [Testoterone] via Sertoli cells"
+        }
+    },
+    {
+        "number": 46,
+        "type": "mcq",
+        "question": {
+            "en": "The primary estrogen in premenopausal women is:"
+        },
+        "options": {
+            "en": [
+                "Estriol",
+                "Estradiol (E2)",
+                "Estrone (E1)",
+                "Estetrol"
+            ]
+        },
+        "answer": {
+            "en": "Estradiol (E2)"
+        }
+    },
+    {
+        "number": 47,
+        "type": "mcq",
+        "question": {
+            "en": "Estrogen's key role in the menstrual cycle is:"
+        },
+        "options": {
+            "en": [
+                "Thickening the endometrium (proliferative phase)",
+                "Triggering ovulation",
+                "Maintaining the corpus luteum",
+                "Inhibiting FSH throughout the cycle"
+            ]
+        },
+        "answer": {
+            "en": "Thickening the endometrium (proliferative phase)"
+        }
+    },
+    {
+        "number": 48,
+        "type": "mcq",
+        "question": {
+            "en": "Estrogen's effect on the vagina includes:"
+        },
+        "options": {
+            "en": [
+                "Glycogen deposition $\\rightarrow$ lactobacilli growth (low pH)",
+                "Mucosal atrophy (in high-estrogen states)",
+                "Increased keratinization",
+                "Neutral pH maintenance"
+            ]
+        },
+        "answer": {
+            "en": "Glycogen deposition $\\rightarrow$ lactobacilli growth (low pH)"
+        }
+    },
+    {
+        "number": 49,
+        "type": "mcq",
+        "question": {
+            "en": "High levels of estrogen during the follicular phase of the menstrual cycle have what effect on ovulation?"
+        },
+        "options": {
+            "en": [
+                "Inhibit GnRH secretion",
+                "Inhibit LH surge",
+                "Stimulate LH surge via positive feedback",
+                "Suppress FSH production"
+            ]
+        },
+        "answer": {
+            "en": "Stimulate LH surge via positive feedback"
+        }
+    },
+    {
+        "number": 50,
+        "type": "mcq",
+        "question": {
+            "en": "Which hormone is primarily responsible for the proliferative phase of the endometrium?"
+        },
+        "options": {
+            "en": [
+                "Progesterone",
+                "Estrogen",
+                "FSH",
+                "LH"
+            ]
+        },
+        "answer": {
+            "en": "Estrogen"
+        }
+    },
+    {
+        "number": 51,
+        "type": "mcq",
+        "question": {
+            "en": "What is the primary role of progesterone in the menstrual cycle?"
+        },
+        "options": {
+            "en": [
+                "Stimulate ovulation",
+                "Maintain the endometrial lining for possible implantation",
+                "Trigger menstruation",
+                "Increase FSH secretion"
+            ]
+        },
+        "answer": {
+            "en": "Maintain the endometrial lining for possible implantation"
+        }
+    },
+    {
+        "number": 52,
+        "type": "mcq",
+        "question": {
+            "en": "A sudden drop in which hormones triggers menstruation?"
+        },
+        "options": {
+            "en": [
+                "Estrogen and FSH",
+                "Progesterone and estrogen",
+                "LH and FSH",
+                "GnRH and prolactin"
+            ]
+        },
+        "answer": {
+            "en": "Progesterone and estrogen"
+        }
+    }
+];
+        let quizData;
+
+        let currentPart = 1;
+        let quizState = {};
+
+        // Sound Synthesis
+        const correctSynth = new Tone.Synth().toDestination();
+        const incorrectSynth = new Tone.Synth().toDestination();
+        let audioStarted = false;
+
+        // DOM Elements
+        const part1Btn = document.getElementById('part1-btn');
+        const part2Btn = document.getElementById('part2-btn');
+        const quizView = document.getElementById('quiz-view');
+        const editView = document.getElementById('edit-view');
+        const practiceSheetBtn = document.getElementById('practice-sheet-btn');
+        const practiceSheetView = document.getElementById('practice-sheet-view');
+        const showAllBtn = document.getElementById('show-all-btn');
+        const allQuestionsView = document.getElementById('all-questions-view');
+        const editQuizBtn = document.getElementById('edit-quiz-btn');
+        const applyPreviewBtn = document.getElementById('apply-preview-btn');
+        const generateSaveCodeBtn = document.getElementById('generate-save-code-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const addQuestionBtn = document.getElementById('add-question-btn');
+        const editQuestionsContainer = document.getElementById('edit-questions-container');
+        const editQuestionNavArea = document.getElementById('edit-question-navigation');
+        const exportArea = document.getElementById('export-area');
+        const exportOutput = document.getElementById('export-output');
+        const copyFeedbackEl = document.getElementById('copy-feedback');
+
+        const mainScoreTextEl = document.getElementById('main-score-text');
+        const questionNavArea = document.getElementById('question-navigation');
+        const questionArea = document.getElementById('question-area');
+        const questionNumberEl = document.getElementById('question-number');
+        const questionTextEl = document.getElementById('question-text');
+        const answerArea = document.getElementById('answer-area');
+        const feedbackArea = document.getElementById('feedback-area');
+        const nextBtn = document.getElementById('next-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        const redoPartBtn = document.getElementById('redo-part-btn');
+        const resultsArea = document.getElementById('results-area');
+        const resultsScoreEl = document.getElementById('results-score');
+        const summaryEl = document.getElementById('summary');
+        const restartBtn = document.getElementById('restart-btn');
+
+        let isAnswered = false;
+
+        async function startAudio() {
+            if (!audioStarted) {
+                await Tone.start();
+                audioStarted = true;
+            }
+        }
+        
+        async function switchPart(part) {
+            currentPart = part;
+
+            part1Btn.classList.remove('bg-indigo-600', 'text-white');
+            part1Btn.classList.add('bg-white', 'text-gray-900');
+            part2Btn.classList.remove('bg-indigo-600', 'text-white');
+            part2Btn.classList.add('bg-white', 'text-gray-900');
+            
+            let targetBtn;
+            if (part === 1) {
+                quizData = quizDataPart1;
+                targetBtn = part1Btn;
+            } else if (part === 2){
+                quizData = quizDataPart2;
+                targetBtn = part2Btn;
+            } 
+            
+            targetBtn.classList.add('bg-indigo-600', 'text-white');
+            targetBtn.classList.remove('bg-white', 'text-gray-900');
+            
+            document.getElementById('quiz-subtitle').textContent = `Subject: Medical Semiology 2 ( ${quizData.length} questions)`;
+            loadQuizView();
+        }
+
+        function updateScoreText() {
+            mainScoreTextEl.innerHTML = `Score: ${quizState[currentPart].score} / ${quizData.length}`;
+        }
+
+        function startQuiz() {
+            initializeQuiz();
+        }
+        
+        function initializeQuiz() {
+            quizState = {
+                1: { userAnswers: [], score: 0, currentQuestionIndex: 0 },
+                2: { userAnswers: [], score: 0, currentQuestionIndex: 0 }
+            };
+            // Default to Part 1 initially, but respect previous state if a user has modified the code
+            if (!quizDataPart1.length && quizDataPart2.length) {
+                 currentPart = 2;
+            } else {
+                 currentPart = 1;
+            }
+            switchPart(currentPart); 
+        }
+        
+        function loadQuizView() {
+            quizView.classList.remove('hidden');
+            editView.classList.add('hidden');
+            practiceSheetView.classList.add('hidden');
+            allQuestionsView.classList.add('hidden');
+            
+            questionNavArea.classList.remove('hidden');
+            questionArea.classList.remove('hidden');
+            answerArea.classList.remove('hidden');
+            resultsArea.classList.add('hidden');
+
+            renderQuestionButtons();
+            showQuestion();
+            updateScoreText();
+        }
+
+        function renderQuestionButtons() {
+            questionNavArea.innerHTML = '';
+            quizData.forEach((question, index) => {
+                const button = document.createElement('button');
+                button.textContent = question.number;
+                button.classList.add('question-nav-btn', 'border-2', 'border-gray-300', 'rounded-md');
+                button.addEventListener('click', () => {
+                    quizState[currentPart].currentQuestionIndex = index;
+                    showQuestion();
+                });
+                questionNavArea.appendChild(button);
+            });
+        }
+        
+        function updateQuestionButtonStyles() {
+            const buttons = Array.from(questionNavArea.children);
+            buttons.forEach((button, index) => {
+                button.classList.remove('active', 'answered-correct', 'answered-incorrect');
+                if (quizState[currentPart].userAnswers[index]) {
+                    if(quizState[currentPart].userAnswers[index].isCorrect) {
+                        button.classList.add('answered-correct');
+                    } else {
+                        button.classList.add('answered-incorrect');
+                    }
+                }
+            });
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            if(buttons[currentQuestionIndex]) {
+                buttons[currentQuestionIndex].classList.add('active');
+            }
+        }
+
+        function showQuestion() {
+            resetState();
+            if (quizData.length === 0) {
+                questionTextEl.innerHTML = "No questions in this part.";
+                questionNavArea.innerHTML = '';
+                answerArea.innerHTML = '';
+                nextBtn.classList.add('hidden');
+                prevBtn.classList.add('hidden');
+                questionNumberEl.innerHTML = `Question 0/0`;
+                return;
+            }
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            const userAnswers = quizState[currentPart].userAnswers;
+            const currentQuestion = quizData[currentQuestionIndex];
+            isAnswered = userAnswers[currentQuestionIndex] !== undefined;
+
+            if (isAnswered) {
+                redoBtn.classList.remove('hidden');
+            }
+
+            questionNumberEl.innerHTML = `Question ${currentQuestion.number}/${quizData.length}`;
+            questionTextEl.innerHTML = `${currentQuestion.question.en}`;
+            
+            if (currentQuestion.type === 'mcq') {
+                answerArea.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+                currentQuestion.options.en.forEach((optionEn) => {
+                    const button = document.createElement('button');
+                    button.innerHTML = `<span>${optionEn}</span>`;
+                    button.classList.add('option-btn', 'w-full', 'p-4', 'border-2', 'border-gray-300', 'rounded-lg', 'text-left', 'hover:bg-gray-100');
+                    button.addEventListener('click', () => selectAnswer(button, optionEn, currentQuestionIndex, answerArea, feedbackArea));
+
+                    if(isAnswered) {
+                        button.disabled = true;
+                        const userAnswerData = userAnswers[currentQuestionIndex];
+                        const correctAnswerEn = currentQuestion.answer.en;
+                        if (optionEn.trim() === correctAnswerEn.trim()){
+                            button.classList.add('correct');
+                        }
+                        if (optionEn.trim() === userAnswerData.answer.trim() && !userAnswerData.isCorrect){
+                            button.classList.add('incorrect');
+                        }
+                    }
+                    answerArea.appendChild(button);
+                });
+            } else if (currentQuestion.type === 'fill-in') {
+                answerArea.className = 'flex flex-col items-center gap-4 mt-4';
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'fill-in-input';
+                input.className = 'w-full max-w-lg p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500';
+                input.placeholder = 'Type your answer here...';
+
+                const submitBtn = document.createElement('button');
+                submitBtn.textContent = 'Submit Answer';
+                submitBtn.className = 'bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-600 transition-colors duration-300 shadow-md';
+                submitBtn.addEventListener('click', () => checkFillInAnswer(input, currentQuestionIndex, answerArea, feedbackArea));
+
+                answerArea.appendChild(input);
+                answerArea.appendChild(submitBtn);
+
+                if (isAnswered) {
+                    const userAnswerData = userAnswers[currentQuestionIndex];
+                    input.value = userAnswerData.answer;
+                    input.disabled = true;
+                    submitBtn.disabled = true;
+                    input.classList.add(userAnswerData.isCorrect ? 'correct' : 'incorrect');
+                    if (!userAnswerData.isCorrect) {
+                        feedbackArea.innerHTML = `Wrong! The correct answer is: ${currentQuestion.answer.en}`;
+                        feedbackArea.className = 'mt-2 text-center text-md font-medium text-red-600';
+                    } else {
+                         feedbackArea.innerHTML = `Correct!`;
+                         feedbackArea.className = 'mt-2 text-center text-md font-medium text-green-600';
+                    }
+                }
+            }
+            updateQuestionButtonStyles();
+            updateButtonVisibility();
+        }
+        
+        function resetState() {
+            feedbackArea.textContent = '';
+            answerArea.innerHTML = '';
+            redoBtn.classList.add('hidden');
+        }
+
+        function updateButtonVisibility() {
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            prevBtn.classList.toggle('hidden', currentQuestionIndex === 0);
+            const allAnswered = quizState[currentPart].userAnswers.filter(Boolean).length === quizData.length;
+            nextBtn.classList.toggle('hidden', allAnswered);
+
+            if (currentQuestionIndex === quizData.length - 1 || allAnswered) {
+                 nextBtn.innerHTML = `<span class="font-semibold">Show Results</span>`;
+            } else {
+                 nextBtn.innerHTML = `<span class="font-semibold">Next Question</span>`;
+            }
+        }
+        
+        async function checkFillInAnswer(inputElement, questionIndex, container, feedbackEl) {
+             await startAudio();
+            if (quizState[currentPart].userAnswers[questionIndex]) return;
+
+            const userAnswer = inputElement.value;
+            const currentQuestion = quizData[questionIndex];
+            const isCorrect = userAnswer.trim().toLowerCase() === currentQuestion.answer.en.trim().toLowerCase();
+
+            inputElement.disabled = true;
+            container.querySelector('button').disabled = true;
+
+            if (isCorrect) {
+                quizState[currentPart].score++;
+                correctSynth.triggerAttackRelease("C5", "8n", Tone.now());
+                inputElement.classList.add('correct');
+                 if (feedbackEl) {
+                    feedbackEl.innerHTML = `Correct!`;
+                    feedbackEl.className = 'mt-2 text-center text-md font-medium text-green-600 practice-feedback';
+                }
+            } else {
+                const now = Tone.now();
+                incorrectSynth.triggerAttackRelease("G3", "16n", now);
+                incorrectSynth.triggerAttackRelease("F#3", "8n", now + 0.1);
+                inputElement.classList.add('incorrect');
+                 if (feedbackEl) {
+                    feedbackEl.innerHTML = `Wrong! The correct answer is: <strong>${currentQuestion.answer.en}</strong>`;
+                    feedbackEl.className = 'mt-2 text-center text-md font-medium text-red-600 practice-feedback';
+                }
+            }
+
+            quizState[currentPart].userAnswers[questionIndex] = { isCorrect, answer: userAnswer };
+            
+            if (!practiceSheetView.classList.contains('hidden')) {
+                const practiceRedoBtn = document.getElementById(`ps-redo-btn-${questionIndex}`);
+                if (practiceRedoBtn) practiceRedoBtn.classList.remove('hidden');
+            } else {
+                redoBtn.classList.remove('hidden');
+            }
+
+            updateScoreText();
+            updateQuestionButtonStyles();
+            updateButtonVisibility();
+        }
+
+
+        async function selectAnswer(button, selectedOptionEn, questionIndex, container, feedbackEl) {
+            await startAudio();
+            if (quizState[currentPart].userAnswers[questionIndex]) return;
+            
+            const allButtons = container.querySelectorAll('button');
+            allButtons.forEach(btn => { btn.disabled = true; });
+
+            const currentQuestion = quizData[questionIndex];
+            const isCorrect = selectedOptionEn.trim() === currentQuestion.answer.en.trim();
+            
+            if (isCorrect) {
+                quizState[currentPart].score++;
+                correctSynth.triggerAttackRelease("C5", "8n", Tone.now());
+                button.classList.add('correct');
+                if (feedbackEl) {
+                    feedbackEl.innerHTML = `Correct!`;
+                    feedbackEl.className = 'mt-2 text-center text-md font-medium text-green-600 practice-feedback';
+                }
+            } else {
+                const now = Tone.now();
+                incorrectSynth.triggerAttackRelease("G3", "16n", now);
+                incorrectSynth.triggerAttackRelease("F#3", "8n", now + 0.1);
+                button.classList.add('incorrect');
+                 if (feedbackEl) {
+                    feedbackEl.innerHTML = `Wrong! The correct answer is: ${currentQuestion.answer.en}`;
+                    feedbackEl.className = 'mt-2 text-center text-md font-medium text-red-600 practice-feedback';
+                }
+                allButtons.forEach(btn => {
+                    if (btn.children[0].textContent.trim() === currentQuestion.answer.en.trim()) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            
+            quizState[currentPart].userAnswers[questionIndex] = { isCorrect, answer: selectedOptionEn };
+
+            if (!practiceSheetView.classList.contains('hidden')) {
+                const practiceRedoBtn = document.getElementById(`ps-redo-btn-${questionIndex}`);
+                if (practiceRedoBtn) practiceRedoBtn.classList.remove('hidden');
+            } else {
+                redoBtn.classList.remove('hidden');
+            }
+
+            updateScoreText();
+            updateQuestionButtonStyles();
+            updateButtonVisibility();
+        }
+        
+        function togglePracticeSheetView() {
+            quizView.classList.toggle('hidden');
+            practiceSheetView.classList.toggle('hidden');
+            allQuestionsView.classList.add('hidden');
+
+            if (!practiceSheetView.classList.contains('hidden')) {
+                renderPracticeSheet();
+                practiceSheetBtn.textContent = 'Back to Quiz';
+            } else {
+                practiceSheetBtn.textContent = 'Practice Sheet';
+                loadQuizView(); // Reload single question view to reflect any changes
+            }
+        }
+
+        function toggleAllQuestionsView() {
+            quizView.classList.toggle('hidden');
+            allQuestionsView.classList.toggle('hidden');
+            practiceSheetView.classList.add('hidden');
+
+            if (!allQuestionsView.classList.contains('hidden')) {
+                renderAllQuestions();
+                showAllBtn.textContent = 'Back to Quiz';
+            } else {
+                showAllBtn.textContent = 'Show Answers';
+            }
+        }
+
+        function renderAllQuestions() {
+            allQuestionsView.innerHTML = ''; // Clear previous content
+
+            const title = document.createElement('h2');
+            title.className = 'text-3xl font-bold text-center mb-6 text-gray-800';
+            title.textContent = `All Questions & Answers - Part ${currentPart}`;
+            allQuestionsView.appendChild(title);
+
+            quizData.forEach(q => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'mb-6 p-4 border rounded-lg bg-gray-50';
+
+                let contentHTML = `<p class="font-bold text-lg mb-2">${q.number}. ${q.question.en}</p>`;
+
+                if (q.type === 'mcq') {
+                    contentHTML += '<ul class="list-disc list-inside space-y-1">';
+                    q.options.en.forEach(option => {
+                        const isCorrect = option.trim() === q.answer.en.trim();
+                        contentHTML += `<li class="${isCorrect ? 'text-green-700 font-semibold' : 'text-gray-700'}">${option}${isCorrect ? ' &check;' : ''}</li>`;
+                    });
+                    contentHTML += '</ul>';
+                } else if (q.type === 'fill-in') {
+                     contentHTML += `<p class="text-green-700 font-semibold">Answer: ${q.answer.en}</p>`;
+                }
+                questionDiv.innerHTML = contentHTML;
+                allQuestionsView.appendChild(questionDiv);
+            });
+            
+            const backBtn = document.createElement('button');
+            backBtn.className = 'mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg block mx-auto';
+            backBtn.innerHTML = '<span class="font-semibold">Back to Quiz</span>';
+            backBtn.addEventListener('click', toggleAllQuestionsView);
+            allQuestionsView.appendChild(backBtn);
+        }
+
+        function renderPracticeSheet() {
+            practiceSheetView.innerHTML = ''; 
+            const title = document.createElement('h2');
+            title.className = 'text-3xl font-bold text-center mb-6 text-gray-800';
+            title.textContent = `Practice Sheet - Part ${currentPart}`;
+            practiceSheetView.appendChild(title);
+
+            quizData.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.id = `ps-question-${index}`;
+                questionDiv.className = 'mb-6 p-4 border rounded-lg bg-gray-50';
+                
+                const questionHeader = document.createElement('div');
+                questionHeader.className = 'flex justify-between items-start';
+                
+                const questionTitle = document.createElement('p');
+                questionTitle.className = 'font-bold text-lg mb-2 flex-grow';
+                questionTitle.innerHTML = `${q.number}. ${q.question.en}`;
+                
+                const redoBtn = document.createElement('button');
+                redoBtn.id = `ps-redo-btn-${index}`;
+                redoBtn.textContent = 'Redo';
+                redoBtn.className = 'hidden bg-yellow-500 text-white font-bold py-1 px-4 rounded-lg hover:bg-yellow-600 text-sm';
+                redoBtn.addEventListener('click', () => redoPracticeSheetQuestion(index));
+                
+                questionHeader.appendChild(questionTitle);
+                questionHeader.appendChild(redoBtn);
+
+                const answersContainer = document.createElement('div');
+                const feedbackEl = document.createElement('div');
+                feedbackEl.className = 'practice-feedback';
+
+                questionDiv.appendChild(questionHeader);
+
+                if (q.type === 'mcq') {
+                    answersContainer.className = 'grid grid-cols-1 md:grid-cols-2 gap-3 mt-4';
+                    q.options.en.forEach(optionEn => {
+                        const button = document.createElement('button');
+                        button.innerHTML = `<span>${optionEn}</span>`;
+                        button.className = 'option-btn w-full p-3 border-2 border-gray-300 rounded-lg text-left hover:bg-gray-100';
+                        button.addEventListener('click', () => selectAnswer(button, optionEn, index, answersContainer, feedbackEl));
+                        answersContainer.appendChild(button);
+                    });
+                } else if (q.type === 'fill-in') {
+                    answersContainer.className = 'flex flex-col items-start gap-3 mt-4';
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'w-full max-w-md p-2 border-2 border-gray-300 rounded-lg';
+                    const submitBtn = document.createElement('button');
+                    submitBtn.textContent = 'Submit';
+                    submitBtn.className = 'bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600 text-sm';
+                    submitBtn.addEventListener('click', () => checkFillInAnswer(input, index, answersContainer, feedbackEl));
+                    answersContainer.appendChild(input);
+                    answersContainer.appendChild(submitBtn);
+                }
+
+                questionDiv.appendChild(answersContainer);
+                questionDiv.appendChild(feedbackEl);
+                practiceSheetView.appendChild(questionDiv);
+
+
+                if (quizState[currentPart].userAnswers[index]) {
+                    redoBtn.classList.remove('hidden');
+                    const userAnswerData = quizState[currentPart].userAnswers[index];
+                    if (q.type === 'mcq') {
+                        Array.from(answersContainer.children).forEach(button => {
+                            button.disabled = true;
+                            const optionText = button.textContent.trim();
+                             if (optionText === q.answer.en.trim()) button.classList.add('correct');
+                             if (optionText === userAnswerData.answer.trim() && !userAnswerData.isCorrect) button.classList.add('incorrect');
+                        });
+                    } else if (q.type === 'fill-in') {
+                        const input = answersContainer.querySelector('input');
+                        const submit = answersContainer.querySelector('button');
+                        input.value = userAnswerData.answer;
+                        input.disabled = true;
+                        submit.disabled = true;
+                        input.classList.add(userAnswerData.isCorrect ? 'correct' : 'incorrect');
+                    }
+                }
+            });
+            
+            const backBtn = document.createElement('button');
+            backBtn.className = 'mt-8 bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors duration-300 shadow-lg block mx-auto';
+            backBtn.innerHTML = '<span class="font-semibold">Back to Quiz</span>';
+            backBtn.addEventListener('click', togglePracticeSheetView);
+            practiceSheetView.appendChild(backBtn);
+        }
+
+        function redoPracticeSheetQuestion(questionIndex) {
+            const answerData = quizState[currentPart].userAnswers[questionIndex];
+            if (!answerData) return;
+
+            if (answerData.isCorrect) {
+                quizState[currentPart].score--;
+            }
+
+            quizState[currentPart].userAnswers[questionIndex] = undefined;
+            updateScoreText();
+            updateQuestionButtonStyles();
+
+            const questionContainer = document.getElementById(`ps-question-${questionIndex}`);
+            if (!questionContainer) return;
+
+            const question = quizData[questionIndex];
+            
+            if (question.type === 'mcq') {
+                const buttons = questionContainer.querySelectorAll('button.option-btn');
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('correct', 'incorrect');
+                });
+            } else if (question.type === 'fill-in') {
+                const input = questionContainer.querySelector('input');
+                const submit = questionContainer.querySelector('button');
+                input.disabled = false;
+                submit.disabled = false;
+                input.value = '';
+                input.classList.remove('correct', 'incorrect');
+            }
+
+            const feedbackEl = questionContainer.querySelector('.practice-feedback');
+            if (feedbackEl) feedbackEl.innerHTML = '';
+            
+            const redoButton = document.getElementById(`ps-redo-btn-${questionIndex}`);
+            if (redoButton) redoButton.classList.add('hidden');
+        }
+
+
+        function showResults() {
+            questionNavArea.classList.add('hidden');
+            questionArea.classList.add('hidden');
+            answerArea.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+            prevBtn.classList.add('hidden');
+            redoBtn.classList.add('hidden');
+            feedbackArea.textContent = '';
+            resultsArea.classList.remove('hidden');
+            resultsScoreEl.innerHTML = `Your final score is ${quizState[currentPart].score} out of ${quizData.length}.`;
+            summaryEl.innerHTML = `<div class="text-center mb-4"><h3 class="text-xl font-bold text-gray-700">Review Your Answers:</h3></div>`; 
+            
+            quizState[currentPart].userAnswers.forEach((ua, index) => {
+                if (!ua) return;
+                const qData = quizData[index];
+                const resultDiv = document.createElement('div');
+                resultDiv.classList.add('mb-4', 'p-3', 'rounded-md', ua.isCorrect ? 'bg-blue-100' : 'bg-red-100');
+                
+                const correctAnswerText = !ua.isCorrect ? `Correct answer: ${qData.answer.en}` : '';
+                resultDiv.innerHTML = `
+                    <p class="font-semibold">${qData.number}. ${qData.question.en}</p>
+                    <p class="text-sm ${ua.isCorrect ? 'text-blue-700' : 'text-red-700'}">Your answer: ${ua.answer}</p>
+                    <p class="text-sm text-gray-600">${correctAnswerText}</p>`;
+                
+                summaryEl.appendChild(resultDiv);
+            });
+        }
+        
+        function redoQuestion() {
+            const currentQuestionIndex = quizState[currentPart].currentQuestionIndex;
+            const answerData = quizState[currentPart].userAnswers[currentQuestionIndex];
+            if (!answerData) return;
+
+            if (answerData.isCorrect) {
+                quizState[currentPart].score--;
+            }
+            quizState[currentPart].userAnswers[currentQuestionIndex] = undefined;
+            
+            updateScoreText();
+            showQuestion();
+        }
+
+        function redoPart() {
+            quizState[currentPart] = { userAnswers: [], score: 0, currentQuestionIndex: 0 };
+            loadQuizView();
+        }
+
+        // --- EDIT MODE FUNCTIONS (Simplified for brevity) ---
+        
+        function toggleEditMode() {
+            quizView.classList.toggle('hidden');
+            editView.classList.toggle('hidden');
+            practiceSheetView.classList.add('hidden');
+            allQuestionsView.classList.add('hidden');
+            if (!editView.classList.contains('hidden')) {
+                renderEditView();
+            }
+            exportArea.classList.add('hidden');
+        }
+
+        function renderEditView() {
+            editQuestionsContainer.innerHTML = '';
+            editQuestionNavArea.innerHTML = '';
+            quizData.forEach((q, index) => {
+                const navButton = document.createElement('button');
+                navButton.textContent = q.number;
+                navButton.className = 'question-nav-btn border-2 border-gray-300 rounded-md';
+                navButton.addEventListener('click', () => document.getElementById(`edit-q-${index}`).scrollIntoView({ behavior: 'smooth' }));
+                editQuestionNavArea.appendChild(navButton);
+                
+                const qDiv = document.createElement('div');
+                qDiv.id = `edit-q-${index}`;
+                qDiv.className = 'border p-4 rounded-lg mb-4 bg-gray-50 scroll-mt-4';
+                const correctAnserIndex = q.type === 'mcq' ? q.options.en.map(o => o.trim()).indexOf(q.answer.en.trim()) : -1;
+
+                qDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-bold text-lg">Question ${q.number}</p>
+                        <button class="delete-question-btn bg-red-500 text-white font-bold py-1 px-3 rounded hover:bg-red-600" data-index="${index}">Delete</button>
+                    </div>
+                    <label class="edit-label">Question (English)</label>
+                    <textarea class="edit-input question-en">${q.question.en}</textarea>
+                    <div class="options-container mt-4">
+                    ${q.type === 'mcq' ?
+                        q.options.en.map((optEn, optIndex) => `
+                            <div class="flex items-center gap-2 mb-2">
+                                <input type="radio" name="correct-answer-${index}" ${optIndex === correctAnserIndex ? 'checked' : ''}>
+                                <input type="text" class="edit-input option-en" value="${optEn}">
+                            </div>
+                        `).join('') : ''
+                    }
+                    </div>
+                `;
+                editQuestionsContainer.appendChild(qDiv);
+            });
+
+            document.querySelectorAll('.delete-question-btn').forEach(btn => btn.addEventListener('click', (e) => {
+                const indexToDelete = parseInt(e.target.dataset.index, 10);
+                if (currentPart === 1) {
+                    quizDataPart1.splice(indexToDelete, 1);
+                    quizDataPart1.forEach((q, i) => q.number = i + 1);
+                } else if (currentPart === 2) {
+                    quizDataPart2.splice(indexToDelete, 1);
+                    quizDataPart2.forEach((q, i) => q.number = i + 1);
+                }
+                renderEditView();
+            }));
+        }
+
+        function getEditedData() {
+            const newQuizData = [];
+            editQuestionsContainer.querySelectorAll('.border').forEach((form, index) => {
+                const q = { number: index + 1, type: 'mcq', question: { en: form.querySelector('.question-en').value.trim() } };
+                const optInputs = Array.from(form.querySelectorAll('.option-en'));
+                const radios = Array.from(form.querySelectorAll('input[type="radio"]'));
+                q.options = { en: optInputs.map(input => input.value.trim()) };
+                const checkedRadio = radios.find(r => r.checked);
+                const correctIndex = checkedRadio ? radios.indexOf(checkedRadio) : -1;
+                q.answer = { en: correctIndex !== -1 ? q.options.en[correctIndex] : q.options.en[0] }; // Default to first if none checked
+                newQuizData.push(q);
+            });
+            return newQuizData;
+        }
+
+
+        function applyToPreview() {
+            const editedData = getEditedData();
+            if (currentPart === 1) quizDataPart1 = editedData;
+            else if (currentPart === 2) quizDataPart2 = editedData;
+            quizData = editedData;
+            toggleEditMode();
+            initializeQuiz();
+        }
+
+        function generateSaveCode() {
+            const data = getEditedData();
+            const varName = `quizDataPart${currentPart}`;
+            exportOutput.value = `let ${varName} = ${JSON.stringify(data, null, 4)};`;
+            exportArea.classList.remove('hidden');
+        }
+
+        // Event Listeners
+        part1Btn.addEventListener('click', () => switchPart(1));
+        part2Btn.addEventListener('click', () => switchPart(2));
+        practiceSheetBtn.addEventListener('click', togglePracticeSheetView);
+        showAllBtn.addEventListener('click', toggleAllQuestionsView);
+        
+        prevBtn.addEventListener('click', () => {
+            if (quizState[currentPart].currentQuestionIndex > 0) {
+                quizState[currentPart].currentQuestionIndex--;
+                showQuestion();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            const allAnswered = quizState[currentPart].userAnswers.filter(Boolean).length === quizData.length;
+            if (quizState[currentPart].currentQuestionIndex < quizData.length - 1 && !allAnswered) {
+                quizState[currentPart].currentQuestionIndex++;
+                showQuestion();
+            } else {
+                showResults();
+            }
+        });
+        
+        restartBtn.addEventListener('click', startQuiz);
+        redoBtn.addEventListener('click', redoQuestion);
+        redoPartBtn.addEventListener('click', redoPart);
+        editQuizBtn.addEventListener('click', toggleEditMode);
+        applyPreviewBtn.addEventListener('click', applyToPreview);
+        generateSaveCodeBtn.addEventListener('click', generateSaveCode);
+        cancelEditBtn.addEventListener('click', toggleEditMode);
+        addQuestionBtn.addEventListener('click', () => {
+            if (currentPart === 1) {
+                quizDataPart1.push({ number: quizDataPart1.length + 1, type: 'mcq', question: { en: "New Question" }, options: { en: ["A", "B", "C", "D"] }, answer: { en: "A" } });
+            } else if (currentPart === 2) {
+                quizDataPart2.push({ number: quizDataPart2.length + 1, type: 'mcq', question: { en: "New Question" }, options: { en: ["A", "B", "C", "D"] }, answer: { en: "A" } });
+            }
+            renderEditView();
+        });
+        exportOutput.addEventListener('click', () => {
+            exportOutput.select();
+            document.execCommand('copy');
+            copyFeedbackEl.textContent = 'Code copied!';
+            setTimeout(() => { copyFeedbackEl.textContent = '' }, 2000);
+        });
+
+        window.addEventListener('beforeunload', e => {
+            // Prevent accidental closure if there are unsaved changes or ongoing quiz.
+            // Modern browsers often ignore the custom message, but the prompt will still appear.
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
+        // Initial start
+        initializeQuiz();
+    </script>
+</body>
+</html>
